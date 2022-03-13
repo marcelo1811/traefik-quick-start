@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  server1:
+    image: node:14-alpine
+    volumes:
+      - ./server1:/usr/src/app/
+    working_dir: /usr/src/app/
+    command: npm start
+    expose:
+      - "80"
+    labels:
+      - traefik.http.routers.server1.rule=Path(`/server1`)
+  server2:
+    image: node:14-alpine
+    volumes:
+      - ./server2:/usr/src/app/
+    working_dir: /usr/src/app/
+    command: npm start
+    expose:
+      - "80"
+    labels:
+      - traefik.http.routers.server2.rule=Path(`/server2`)
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.6
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
+    ports:
+      # The HTTP port
+      - "3000:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
